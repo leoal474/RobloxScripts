@@ -1,15 +1,12 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local found = false
+local Player = game:GetService("Players").LocalPlayer
+local descendants = workspace:GetDescendants()
 
-for _, v in pairs(ReplicatedStorage:GetDescendants()) do
-    if v.Name:lower():find("attack") or v.Name:lower():find("reaper") then
-        print("BULUNDU: " .. v.Name .. " - " .. v:GetFullName())
-        found = true
+-- Tüm oyunu tara (Sadece ReplicatedStorage değil)
+for _, v in pairs(game:GetDescendants()) do
+    if v:IsA("RemoteEvent") then
+        local name = v.Name:lower()
+        if name:find("attack") or name:find("reaper") or name:find("revive") then
+            print("BULUNDU: " .. v.Name .. " - " .. v:GetFullName())
+        end
     end
-end
-
-if not found then
-    print("HATA: Oyun içinde 'Attack' veya 'Reaper' isminde hiçbir şey bulunamadı!")
-else
-    print("Başarılı: Bazı remote'lar bulundu, kodun ismini güncellememiz gerekiyor.")
 end
