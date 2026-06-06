@@ -1,51 +1,20 @@
--- ESP ve Speed Menüsü
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
+local Player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
 
--- ESP Fonksiyonu
-local function createESP(target)
-    if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        local highlight = Instance.new("Highlight")
-        highlight.Parent = target.Character
-        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+-- Sadece Hız - Menüsüz, Engellenemez
+local function setSpeed(s)
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = s
     end
 end
 
--- Menü Kütüphanesi (Açılır-Kapanır)
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-local Window = library:MakeWindow({Name = "Mod Menü v1.0", HidePremium = true, SaveConfig = true})
+-- Klavye ile Hız Değiştirme (Takılma yapmaz)
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.One then setSpeed(150)
+    elseif input.KeyCode == Enum.KeyCode.Two then setSpeed(250)
+    elseif input.KeyCode == Enum.KeyCode.Three then setSpeed(350)
+    elseif input.KeyCode == Enum.KeyCode.Four then setSpeed(16) end
+end)
 
-local Tab = Window:MakeTab({Name = "Ana Menü", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-
--- Hız Ayarları
-Tab:AddSlider({
-	Name = "WalkSpeed Ayarı",
-	Min = 16, Max = 400, Default = 16,
-	Callback = function(Value)
-		LocalPlayer.Character.Humanoid.WalkSpeed = Value
-	end    
-})
-
--- Hız Seçenekleri (Butonlar)
-Tab:AddButton({Name = "Hız: 150", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 150 end})
-Tab:AddButton({Name = "Hız: 250", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 250 end})
-Tab:AddButton({Name = "Hız: 350", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 350 end})
-
--- ESP Butonu
-Tab:AddToggle({
-	Name = "ESP Aç/Kapat",
-	Default = false,
-	Callback = function(Value)
-		if Value then
-			for _, p in pairs(Players:GetPlayers()) do createESP(p) end
-		else
-			for _, p in pairs(Players:GetPlayers()) do
-                if p.Character and p.Character:FindFirstChild("Highlight") then p.Character.Highlight:Destroy() end
-            end
-		end
-	end    
-})
-
-library:Init()
+print("Hız scripti yüklendi! 1=150, 2=250, 3=350, 4=Normal")
