@@ -1,38 +1,24 @@
--- Advanced Auto Engine with Waiting System
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Player = Players.LocalPlayer
+local Player = game:GetService("Players").LocalPlayer
+local Remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
 
-local function getRemote(name)
-    local RemoteFolder = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Events")
-    if RemoteFolder then
-        for _, v in pairs(RemoteFolder:GetChildren()) do
-            if v.Name:lower():find(name:lower()) then return v end
-        end
-    end
-    return nil
-end
-
--- Reaper Loop
+-- 20 Saniyede bir Reaper
 task.spawn(function()
     while true do
-        local reaper = getRemote("reaper") or getRemote("revive")
-        if reaper then
-            reaper:FireServer()
+        if Remotes and Remotes:FindFirstChild("Reaper") then
+            Remotes.Reaper:FireServer()
         end
         task.wait(20)
     end
 end)
 
--- Kill Aura Loop
+-- Sürekli Saldırı
 task.spawn(function()
     while true do
-        task.wait(0.5)
-        local attack = getRemote("attack") or getRemote("hit") or getRemote("damage")
-        if attack then
+        task.wait(0.1)
+        if Remotes and Remotes:FindFirstChild("Attack") then
             for _, v in pairs(workspace:GetDescendants()) do
                 if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= Player.Character then
-                    attack:FireServer(v.Parent)
+                    Remotes.Attack:FireServer(v.Parent)
                 end
             end
         end
