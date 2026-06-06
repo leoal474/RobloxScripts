@@ -1,158 +1,40 @@
-if game.CoreGui:FindFirstChild("SpeedEscapeMenu") then 
-    game.CoreGui.SpeedEscapeMenu:Destroy() 
+local Player = game:GetService("Players").LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- Hız ayarları (Kasma ve takılma yapmaz)
+local speeds = {50, 100, 200, 250, 300, 400}
+
+-- Delta için basit bir menü
+local library = {
+    ["Speed"] = 16 -- Başlangıç hızı
+}
+
+-- Hızı sabitleyen ve takılmayı önleyen fonksiyon
+local function setSpeed(s)
+    library.Speed = s
+    Humanoid.WalkSpeed = s
 end
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SpeedEscapeMenu"
-ScreenGui.Parent = game.CoreGui
+-- Delta Menüsü (Sadece Hız Butonları)
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local Window = OrionLib:MakeWindow({Name = "Candy Speed Hack", HidePremium = true, SaveConfig = true})
+local Tab = Window:MakeTab({Name = "Hız Menüsü", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
--- Ana Panel
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 20, 30)
-MainFrame.Position = UDim2.new(0.35, 0, 0.25, 0)
-MainFrame.Size = UDim2.new(0, 240, 0, 280)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-
--- Başlık
-local Title = Instance.new("TextLabel", MainFrame)
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "SPEED & ESP PREMIUM"
-Title.TextColor3 = Color3.fromRGB(255, 100, 255)
-Title.TextSize = 16
-Title.BorderSizePixel = 0
-
--- Menüyü Kapatma/Küçültme Butonu (X)
-local CloseBtn = Instance.new("TextButton", MainFrame)
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -32, 0, 2)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
-CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 14
-
--- Menüyü Yeniden Açma Butonu (Ekranın köşesinde durur)
-local OpenBtn = Instance.new("TextButton", ScreenGui)
-OpenBtn.Size = UDim2.new(0, 50, 0, 30)
-OpenBtn.Position = UDim2.new(0, 10, 0, 10)
-OpenBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
-OpenBtn.Text = "OPEN"
-OpenBtn.TextColor3 = Color3.fromRGB(255, 100, 255)
-OpenBtn.Font = Enum.Font.SourceSansBold
-OpenBtn.TextSize = 12
-OpenBtn.Visible = false
-
-CloseBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-    OpenBtn.Visible = true
-end)
-
-OpenBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = true
-    OpenBtn.Visible = false
-end)
-
-local flags = {ESP = false, SpeedToggle = false, SpeedValue = 16}
-
--- Buton Oluşturucu Fonksiyon
-local function createSpeedBtn(text, pos, value)
-    local btn = Instance.new("TextButton", MainFrame)
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = pos
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.Text = "Speed: " .. text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.BorderSizePixel = 0
-    
-    btn.MouseButton1Click:Connect(function()
-        flags.SpeedValue = value
-        flags.SpeedToggle = true
-        -- Görsel geri bildirim
-        for _, child in pairs(MainFrame:GetChildren()) do
-            if child:IsA("TextButton") and child ~= CloseBtn and string.find(child.Text, "Speed:") then
-                child.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-            end
-        end
-        btn.BackgroundColor3 = Color3.fromRGB(60, 160, 60)
-    end)
-    return btn
+for _, s in pairs(speeds) do
+    Tab:AddButton({
+        Name = "Hız: " .. s,
+        Callback = function()
+            setSpeed(s)
+        end    
+    })
 end
 
--- İstediğin Hız Seçenekleri
-createSpeedBtn("50", UDim2.new(0.05, 0, 0.15, 0), 50)
-createSpeedBtn("100", UDim2.new(0.05, 0, 0.30, 0), 100)
-createSpeedBtn("200", UDim2.new(0.05, 0, 0.45, 0), 200)
-createSpeedBtn("300 (God)", UDim2.new(0.05, 0, 0.60, 0), 300)
+Tab:AddButton({
+    Name = "Hızı Sıfırla (16)",
+    Callback = function()
+        setSpeed(16)
+    end    
+})
 
--- ESP Butonu
-local ESPBtn = Instance.new("TextButton", MainFrame)
-ESPBtn.Size = UDim2.new(0.9, 0, 0, 35)
-ESPBtn.Position = UDim2.new(0.05, 0, 0.80, 0)
-ESPBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-ESPBtn.Font = Enum.Font.SourceSansBold
-ESPBtn.Text = "Player ESP: OFF"
-ESPBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-ESPBtn.BorderSizePixel = 0
-
--- Saniyede 60+ kez hızı kontrol eden kesintisiz motor (RunService)
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-RunService.RenderStepped:Connect(function()
-    if flags.SpeedToggle then
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.WalkSpeed = flags.SpeedValue
-        end
-    end
-end)
-
--- ESP Fonksiyonları
-local function applyESP(player)
-    if player ~= LocalPlayer and player.Character then
-        if not player.Character:FindFirstChild("ESPHighlight") then
-            local highlight = Instance.new("Highlight")
-            highlight.Name = "ESPHighlight"
-            highlight.FillColor = Color3.fromRGB(255, 0, 150)
-            highlight.FillTransparency = 0.5
-            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            highlight.OutlineTransparency = 0
-            highlight.Adornee = player.Character
-            highlight.Parent = player.Character
-        end
-    end
-end
-
-local function removeESP()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-            player.Character.ESPHighlight:Destroy()
-        end
-    end
-end
-
-ESPBtn.MouseButton1Click:Connect(function()
-    flags.ESP = not flags.ESP
-    ESPBtn.BackgroundColor3 = flags.ESP and Color3.fromRGB(60, 160, 60) or Color3.fromRGB(45, 45, 50)
-    ESPBtn.Text = flags.ESP and "Player ESP: ON" or "Player ESP: OFF"
-    ESPBtn.TextColor3 = flags.ESP and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if flags.ESP then
-            for _, player in pairs(Players:GetPlayers()) do
-                applyESP(player)
-            end
-        else
-            removeESP()
-        end
-    end
-end)
+OrionLib:Init()
