@@ -1,0 +1,87 @@
+if game.CoreGui:FindFirstChild("GameMenu") then 
+    game.CoreGui.GameMenu:Destroy() 
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "GameMenu"
+ScreenGui.Parent = game.CoreGui
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.Position = UDim2.new(0.3, 0, 0.25, 0)
+MainFrame.Size = UDim2.new(0, 240, 0, 210)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "PREMIUM AUTO FARM"
+Title.TextColor3 = Color3.fromRGB(255, 50, 50)
+Title.TextSize = 16
+Title.BorderSizePixel = 0
+
+local flags = {Boss = false, Zombie = false, Reaper = false}
+
+local function createToggle(text, pos, callback)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.Text = text .. ": OFF"
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.TextSize = 14
+    btn.BorderSizePixel = 0
+    
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and Color3.fromRGB(50, 150, 50) or Color3.fromRGB(40, 40, 45)
+        btn.Text = text .. (active and ": ON" or ": OFF")
+        callback(active)
+    end)
+    return btn
+end
+
+local RS = game:GetService("ReplicatedStorage")
+local Remotes = RS:FindFirstChild("Remotes") or RS:FindFirstChild("Events")
+
+createToggle("Auto Boss", UDim2.new(0.05, 0, 0.22, 0), function(val) flags.Boss = val end)
+createToggle("Auto Zombie", UDim2.new(0.05, 0, 0.45, 0), function(val) flags.Zombie = val end)
+createToggle("Auto Reaper (29s)", UDim2.new(0.05, 0, 0.68, 0), function(val)
+    flags.Reaper = val
+    if val then
+        task.spawn(function()
+            while flags.Reaper do
+                if Remotes and Remotes:FindFirstChild("Reaper") then
+                    Remotes.Reaper:FireServer()
+                end
+                task.wait(29)
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            if flags.Boss or flags.Zombie then
+                local targetName = flags.Boss and "Boss" or "Zombie"
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("Humanoid") and v.Health > 0 and string.find(string.lower(v.Parent.Name), string.lower(targetName)) then
+                        char.HumanoidRootPart.CFrame = v.Parent.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                        if Remotes and Remotes:FindFirstChild("Attack") then
+                            Remotes.Attack:FireServer(v.Parent)
+                        end
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
