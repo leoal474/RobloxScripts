@@ -1,37 +1,15 @@
-local Player = game:GetService("Players").LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local found = false
 
--- Oyunun içindeki tüm klasörleri tarayıp doğru olanı bulur
-local function findRemote(name)
-    for _, folder in pairs(ReplicatedStorage:GetChildren()) do
-        if folder:IsA("Folder") or folder:IsA("RemoteEvent") then
-            local target = folder:FindFirstChild(name)
-            if target then return target end
-        end
+for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+    if v.Name:lower():find("attack") or v.Name:lower():find("reaper") then
+        print("BULUNDU: " .. v.Name .. " - " .. v:GetFullName())
+        found = true
     end
-    return nil
 end
 
--- 20 Saniyede bir Reaper
-task.spawn(function()
-    while true do
-        local reaper = findRemote("Reaper") or findRemote("Revive")
-        if reaper then reaper:FireServer() end
-        task.wait(20)
-    end
-end)
-
--- Otomatik Saldırı (Kill Aura)
-task.spawn(function()
-    while true do
-        task.wait(0.2)
-        local attack = findRemote("Attack") or findRemote("Hit") or findRemote("Damage")
-        if attack then
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= Player.Character then
-                    attack:FireServer(v.Parent)
-                end
-            end
-        end
-    end
-end)
+if not found then
+    print("HATA: Oyun içinde 'Attack' veya 'Reaper' isminde hiçbir şey bulunamadı!")
+else
+    print("Başarılı: Bazı remote'lar bulundu, kodun ismini güncellememiz gerekiyor.")
+end
