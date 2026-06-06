@@ -2,39 +2,14 @@ local Player = game:GetService("Players").LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
--- Hız ayarları (Kasma ve takılma yapmaz)
-local speeds = {50, 100, 200, 250, 300, 400}
+-- Buradan hızını istediğin gibi (150, 250 veya 350) değiştir:
+local ISTENEN_HIZ = 250 
 
--- Delta için basit bir menü
-local library = {
-    ["Speed"] = 16 -- Başlangıç hızı
-}
+Humanoid.WalkSpeed = ISTENEN_HIZ
 
--- Hızı sabitleyen ve takılmayı önleyen fonksiyon
-local function setSpeed(s)
-    library.Speed = s
-    Humanoid.WalkSpeed = s
-end
+-- Karakter sıfırlanırsa hızın gitmemesi için
+Player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    char:WaitForChild("Humanoid").WalkSpeed = ISTENEN_HIZ
+end)
 
--- Delta Menüsü (Sadece Hız Butonları)
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-local Window = OrionLib:MakeWindow({Name = "Candy Speed Hack", HidePremium = true, SaveConfig = true})
-local Tab = Window:MakeTab({Name = "Hız Menüsü", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-
-for _, s in pairs(speeds) do
-    Tab:AddButton({
-        Name = "Hız: " .. s,
-        Callback = function()
-            setSpeed(s)
-        end    
-    })
-end
-
-Tab:AddButton({
-    Name = "Hızı Sıfırla (16)",
-    Callback = function()
-        setSpeed(16)
-    end    
-})
-
-OrionLib:Init()
