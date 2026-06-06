@@ -1,24 +1,35 @@
 local Player = game:GetService("Players").LocalPlayer
-local Remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Oyunun içindeki tüm klasörleri tarayıp doğru olanı bulur
+local function findRemote(name)
+    for _, folder in pairs(ReplicatedStorage:GetChildren()) do
+        if folder:IsA("Folder") or folder:IsA("RemoteEvent") then
+            local target = folder:FindFirstChild(name)
+            if target then return target end
+        end
+    end
+    return nil
+end
 
 -- 20 Saniyede bir Reaper
 task.spawn(function()
     while true do
-        if Remotes and Remotes:FindFirstChild("Reaper") then
-            Remotes.Reaper:FireServer()
-        end
+        local reaper = findRemote("Reaper") or findRemote("Revive")
+        if reaper then reaper:FireServer() end
         task.wait(20)
     end
 end)
 
--- Sürekli Saldırı
+-- Otomatik Saldırı (Kill Aura)
 task.spawn(function()
     while true do
-        task.wait(0.1)
-        if Remotes and Remotes:FindFirstChild("Attack") then
+        task.wait(0.2)
+        local attack = findRemote("Attack") or findRemote("Hit") or findRemote("Damage")
+        if attack then
             for _, v in pairs(workspace:GetDescendants()) do
                 if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= Player.Character then
-                    Remotes.Attack:FireServer(v.Parent)
+                    attack:FireServer(v.Parent)
                 end
             end
         end
