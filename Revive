@@ -1,40 +1,38 @@
--- Automatic Remote Detector & Execution Engine
+-- Advanced Auto Engine with Waiting System
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 
--- Auto detect events
-local RemoteFolder = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Events")
-local AttackRemote = nil
-local ReaperRemote = nil
-
-if RemoteFolder then
-    for _, v in pairs(RemoteFolder:GetChildren()) do
-        local name = v.Name:lower()
-        if name:find("attack") or name:find("hit") or name:find("damage") then AttackRemote = v end
-        if name:find("reaper") or name:find("revive") then ReaperRemote = v end
+local function getRemote(name)
+    local RemoteFolder = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Events")
+    if RemoteFolder then
+        for _, v in pairs(RemoteFolder:GetChildren()) do
+            if v.Name:lower():find(name:lower()) then return v end
+        end
     end
+    return nil
 end
 
--- Reaper loop
+-- Reaper Loop
 task.spawn(function()
     while true do
-        task.wait(20)
-        if ReaperRemote then
-            ReaperRemote:FireServer()
+        local reaper = getRemote("reaper") or getRemote("revive")
+        if reaper then
+            reaper:FireServer()
         end
+        task.wait(20)
     end
 end)
 
--- Kill aura loop
+-- Kill Aura Loop
 task.spawn(function()
     while true do
-        task.wait(0.2)
-        if AttackRemote then
+        task.wait(0.5)
+        local attack = getRemote("attack") or getRemote("hit") or getRemote("damage")
+        if attack then
             for _, v in pairs(workspace:GetDescendants()) do
                 if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= Player.Character then
-                    AttackRemote:FireServer(v.Parent)
+                    attack:FireServer(v.Parent)
                 end
             end
         end
