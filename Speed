@@ -6,14 +6,16 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SpeedEscapeMenu"
 ScreenGui.Parent = game.CoreGui
 
+-- Ana Panel
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 20, 30)
 MainFrame.Position = UDim2.new(0.35, 0, 0.25, 0)
-MainFrame.Size = UDim2.new(0, 240, 0, 250)
+MainFrame.Size = UDim2.new(0, 240, 0, 280)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 
+-- Başlık
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
@@ -23,74 +25,95 @@ Title.TextColor3 = Color3.fromRGB(255, 100, 255)
 Title.TextSize = 16
 Title.BorderSizePixel = 0
 
-local flags = {ESP = false, SpeedToggle = false, SpeedValue = 50}
+-- Menüyü Kapatma/Küçültme Butonu (X)
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -32, 0, 2)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.TextSize = 14
 
--- Speed Button 1: Set to 50 Speed
-local Btn50 = Instance.new("TextButton", MainFrame)
-Btn50.Size = UDim2.new(0.9, 0, 0, 35)
-Btn50.Position = UDim2.new(0.05, 0, 0.18, 0)
-Btn50.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-Btn50.Font = Enum.Font.SourceSansBold
-Btn50.Text = "Speed: 50"
-Btn50.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn50.BorderSizePixel = 0
+-- Menüyü Yeniden Açma Butonu (Ekranın köşesinde durur)
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 50, 0, 30)
+OpenBtn.Position = UDim2.new(0, 10, 0, 10)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
+OpenBtn.Text = "OPEN"
+OpenBtn.TextColor3 = Color3.fromRGB(255, 100, 255)
+OpenBtn.Font = Enum.Font.SourceSansBold
+OpenBtn.TextSize = 12
+OpenBtn.Visible = false
 
--- Speed Button 2: Set to 150 Speed (Fast Run)
-local Btn150 = Instance.new("TextButton", MainFrame)
-Btn150.Size = UDim2.new(0.9, 0, 0, 35)
-Btn150.Position = UDim2.new(0.05, 0, 0.36, 0)
-Btn150.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-Btn150.Font = Enum.Font.SourceSansBold
-Btn150.Text = "Speed: 150"
-Btn150.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn150.BorderSizePixel = 0
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    OpenBtn.Visible = true
+end)
 
--- Speed Button 3: Set to 300 Speed (God Speed)
-local Btn300 = Instance.new("TextButton", MainFrame)
-Btn300.Size = UDim2.new(0.9, 0, 0, 35)
-Btn300.Position = UDim2.new(0.05, 0, 0.54, 0)
-Btn300.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-Btn300.Font = Enum.Font.SourceSansBold
-Btn300.Text = "Speed: 300 (God Mode)"
-Btn300.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn300.BorderSizePixel = 0
+OpenBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    OpenBtn.Visible = false
+end)
 
--- ESP Toggle Button
+local flags = {ESP = false, SpeedToggle = false, SpeedValue = 16}
+
+-- Buton Oluşturucu Fonksiyon
+local function createSpeedBtn(text, pos, value)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.Text = "Speed: " .. text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BorderSizePixel = 0
+    
+    btn.MouseButton1Click:Connect(function()
+        flags.SpeedValue = value
+        flags.SpeedToggle = true
+        -- Görsel geri bildirim
+        for _, child in pairs(MainFrame:GetChildren()) do
+            if child:IsA("TextButton") and child ~= CloseBtn and string.find(child.Text, "Speed:") then
+                child.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+            end
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(60, 160, 60)
+    end)
+    return btn
+end
+
+-- İstediğin Hız Seçenekleri
+createSpeedBtn("50", UDim2.new(0.05, 0, 0.15, 0), 50)
+createSpeedBtn("100", UDim2.new(0.05, 0, 0.30, 0), 100)
+createSpeedBtn("200", UDim2.new(0.05, 0, 0.45, 0), 200)
+createSpeedBtn("300 (God)", UDim2.new(0.05, 0, 0.60, 0), 300)
+
+-- ESP Butonu
 local ESPBtn = Instance.new("TextButton", MainFrame)
 ESPBtn.Size = UDim2.new(0.9, 0, 0, 35)
-ESPBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+ESPBtn.Position = UDim2.new(0.05, 0, 0.80, 0)
 ESPBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 ESPBtn.Font = Enum.Font.SourceSansBold
 ESPBtn.Text = "Player ESP: OFF"
 ESPBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 ESPBtn.BorderSizePixel = 0
 
+-- Saniyede 60+ kez hızı kontrol eden kesintisiz motor (RunService)
+local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Speed Functionality
-local function updateSpeed(value)
-    flags.SpeedValue = value
-    flags.SpeedToggle = true
-end
-
-Btn50.MouseButton1Click:Connect(function() updateSpeed(50) end)
-Btn150.MouseButton1Click:Connect(function() updateSpeed(150) end)
-Btn300.MouseButton1Click:Connect(function() updateSpeed(300) end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if flags.SpeedToggle then
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.WalkSpeed = flags.SpeedValue
-            end
+RunService.RenderStepped:Connect(function()
+    if flags.SpeedToggle then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = flags.SpeedValue
         end
     end
 end)
 
--- Perfect ESP Functionality (Highlights players through walls)
+-- ESP Fonksiyonları
 local function applyESP(player)
     if player ~= LocalPlayer and player.Character then
         if not player.Character:FindFirstChild("ESPHighlight") then
