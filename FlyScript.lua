@@ -1,44 +1,48 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/7YBot/RbxUi/main/Ui.lua"))()
+local Window = Library:CreateWindow("Fly Menü", "Uçma Hilesi", 10123000000)
+local Tab = Window:CreateTab("Genel")
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Torso = Character:WaitForChild("HumanoidRootPart")
 
 local flying = false
 local speed = 50
-local connection
+local bv, bg
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.F then
-        flying = not flying
-        if flying then
-            connection = RunService.RenderStepped:Connect(function()
-                local camera = workspace.CurrentCamera
-                local direction = Vector3.new()
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    direction += camera.CFrame.LookVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    direction -= camera.CFrame.LookVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    direction -= camera.CFrame.RightVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    direction += camera.CFrame.RightVector
-                end
-                if direction.Magnitude > 0 then
-                    humanoidRootPart.Velocity = direction.Unit * speed
-                else
-                    humanoidRootPart.Velocity = Vector3.new(0,0,0)
-                end
-            end)
-        else
-            if connection then
-                connection:Disconnect()
-                connection = nil
-            end
+-- Uçma Fonksiyonu
+local function startFlying()
+    if bv or bg then return end
+    bv = Instance.new("BodyVelocity", Torso)
+    bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+    bv.velocity = Vector3.new(0, 0, 0)
+
+    bg = Instance.new("BodyGyro", Torso)
+    bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bg.cframe = Torso.CFrame
+
+    task.spawn(function()
+        while flying and task.wait() do
+            Character.Humanoid.PlatformStand = true
+            local Mouse = LocalPlayer:GetMouse()
+            bv.velocity = Mouse.Hit.lookVector * speed
+            bg.cframe = CFrame.new(Torso.Position, Torso.Position + Mouse.Hit.lookVector)
         end
+        if bv then bv:Destroy() bv = nil end
+        if bg then bg:Destroy() bg = nil end
+        Character.Humanoid.PlatformStand = false
+    end)
+end
+
+-- Menü Butonları
+Tab:CreateToggle("Uçmayı Aç/Kapat", function(state)
+    flying = state
+    if flying then
+        startFlying()
     end
+end)
+
+Tab:CreateSlider("Uçma Hızı", 10, 250, 50, function(value)
+    speed = value
 end)
