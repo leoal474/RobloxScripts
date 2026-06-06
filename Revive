@@ -1,12 +1,23 @@
 local Player = game:GetService("Players").LocalPlayer
-local descendants = workspace:GetDescendants()
 
--- Tüm oyunu tara (Sadece ReplicatedStorage değil)
-for _, v in pairs(game:GetDescendants()) do
-    if v:IsA("RemoteEvent") then
-        local name = v.Name:lower()
-        if name:find("attack") or name:find("reaper") or name:find("revive") then
-            print("BULUNDU: " .. v.Name .. " - " .. v:GetFullName())
+-- Kill Aura (Fiziksel temasla öldürme)
+local function startKillAura()
+    while true do
+        task.wait(0.2)
+        local char = Player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= char then
+                    local targetRoot = v.Parent:FindFirstChild("HumanoidRootPart")
+                    if targetRoot and (targetRoot.Position - char.HumanoidRootPart.Position).Magnitude < 15 then
+                        -- Fiziksel temas (Remote kullanmıyoruz)
+                        v.Health = 0 
+                    end
+                end
+            end
         end
     end
 end
+
+-- Revive/Reaper için alternatif fiziksel dokunuş
+task.spawn(startKillAura)
