@@ -1,15 +1,51 @@
-local Player = game:GetService("Players").LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
+-- ESP ve Speed Menüsü
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
--- Buradan hızını istediğin gibi (150, 250 veya 350) değiştir:
-local ISTENEN_HIZ = 250 
+-- ESP Fonksiyonu
+local function createESP(target)
+    if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = target.Character
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    end
+end
 
-Humanoid.WalkSpeed = ISTENEN_HIZ
+-- Menü Kütüphanesi (Açılır-Kapanır)
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local Window = library:MakeWindow({Name = "Mod Menü v1.0", HidePremium = true, SaveConfig = true})
 
--- Karakter sıfırlanırsa hızın gitmemesi için
-Player.CharacterAdded:Connect(function(char)
-    task.wait(0.5)
-    char:WaitForChild("Humanoid").WalkSpeed = ISTENEN_HIZ
-end)
+local Tab = Window:MakeTab({Name = "Ana Menü", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
+-- Hız Ayarları
+Tab:AddSlider({
+	Name = "WalkSpeed Ayarı",
+	Min = 16, Max = 400, Default = 16,
+	Callback = function(Value)
+		LocalPlayer.Character.Humanoid.WalkSpeed = Value
+	end    
+})
+
+-- Hız Seçenekleri (Butonlar)
+Tab:AddButton({Name = "Hız: 150", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 150 end})
+Tab:AddButton({Name = "Hız: 250", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 250 end})
+Tab:AddButton({Name = "Hız: 350", Callback = function() LocalPlayer.Character.Humanoid.WalkSpeed = 350 end})
+
+-- ESP Butonu
+Tab:AddToggle({
+	Name = "ESP Aç/Kapat",
+	Default = false,
+	Callback = function(Value)
+		if Value then
+			for _, p in pairs(Players:GetPlayers()) do createESP(p) end
+		else
+			for _, p in pairs(Players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("Highlight") then p.Character.Highlight:Destroy() end
+            end
+		end
+	end    
+})
+
+library:Init()
