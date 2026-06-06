@@ -1,3 +1,4 @@
+-- Clear existing menu
 if game.CoreGui:FindFirstChild("RevivePremiumMenu") then 
     game.CoreGui.RevivePremiumMenu:Destroy() 
 end
@@ -5,6 +6,7 @@ end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RevivePremiumMenu"
 ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
@@ -17,30 +19,29 @@ MainFrame.Draggable = true
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
-Title.Font = Enum.Font.SourceSansBold
 Title.Text = "REVIVE ULTRA HUB"
 Title.TextColor3 = Color3.fromRGB(255, 100, 255)
+Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.BorderSizePixel = 0
+Title.Parent = MainFrame
 
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -32, 0, 2)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 14
+CloseBtn.Parent = MainFrame
 
 local OpenBtn = Instance.new("TextButton", ScreenGui)
-OpenBtn.Size = UDim2.new(0, 50, 0, 30)
+OpenBtn.Size = UDim2.new(0, 60, 0, 30)
 OpenBtn.Position = UDim2.new(0, 10, 0, 10)
 OpenBtn.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
 OpenBtn.Text = "OPEN"
 OpenBtn.TextColor3 = Color3.fromRGB(255, 100, 255)
-OpenBtn.Font = Enum.Font.SourceSansBold
-OpenBtn.TextSize = 12
 OpenBtn.Visible = false
+OpenBtn.Parent = ScreenGui
 
 CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
@@ -52,43 +53,46 @@ OpenBtn.MouseButton1Click:Connect(function()
     OpenBtn.Visible = false
 end)
 
-local flags = {KillAll = false, AutoReaper = false, GodSpeed = false}
+local flags = {KillAll = false, AutoReaper = false}
 
 local function createToggle(text, pos, callback)
     local btn = Instance.new("TextButton", MainFrame)
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
     btn.Position = pos
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    btn.Font = Enum.Font.SourceSansBold
     btn.Text = text .. ": OFF"
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.TextSize = 14
-    btn.BorderSizePixel = 0
-    
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Parent = MainFrame
     local active = false
     btn.MouseButton1Click:Connect(function()
         active = not active
         btn.BackgroundColor3 = active and Color3.fromRGB(60, 160, 60) or Color3.fromRGB(40, 40, 45)
         btn.Text = text .. (active and ": ON" or ": OFF")
-        btn.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
         callback(active)
     end)
-    return btn
 end
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Events")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
+createToggle("Kill All", UDim2.new(0.05, 0, 0.2, 0), function(val) flags.KillAll = val end)
+createToggle("Auto Reaper", UDim2.new(0.05, 0, 0.4, 0), function(val) flags.AutoReaper = val end)
 
-createToggle("Auto Kill All (Road & Boss)", UDim2.new(0.05, 0, 0.18, 0), function(val)
-    flags.KillAll = val
+task.spawn(function()
+    while true do task.wait(20)
+        if flags.AutoReaper then
+            local rem = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if rem and rem:FindFirstChild("Reaper") then rem.Reaper:FireServer() end
+        end
+    end
 end)
 
-createToggle("Auto Reaper Loop (20s)", UDim2.new(0.05, 0, 0.38, 0), function(val)
-    flags.AutoReaper = val
-    if val then
-        task.spawn(function()
-            while flags.AutoReaper do
-                if Remotes and Remotes
+task.spawn(function()
+    while true do task.wait(0.2)
+        if flags.KillAll then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Humanoid") and v.Health > 0 and v.Parent ~= game.Players.LocalPlayer.Character then
+                    local rem = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+                    if rem and rem:FindFirstChild("Attack") then rem.Attack:FireServer(v.Parent) end
+                end
+            end
+        end
+    end
+end)
