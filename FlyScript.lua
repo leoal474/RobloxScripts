@@ -45,4 +45,3 @@ end)
 
 Tab:CreateSlider("Uçma Hızı", 10, 250, 50, function(value)
     speed = value
-end)
